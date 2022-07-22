@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 )
 
 const hnUrl = "https://hacker-news.firebaseio.com"
@@ -49,7 +50,6 @@ func main() {
 			}
 
 			path := categories[category]
-			log.Println("category " + category + " is on path " + path)
 
 			c := &http.Client{}
 
@@ -58,8 +58,14 @@ func main() {
 				log.Fatalln(err)
 			}
 
-			for i, id := range ids {
-				fmt.Println(i+1, id)
+			stories, err := fetchStories(c, ids)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			sort.Sort(stories)
+			for _, s := range stories {
+				fmt.Println(s.ID, s.Title, s.Time)
 			}
 
 			return nil
