@@ -14,18 +14,10 @@ type keyMap struct {
 	Enter key.Binding
 }
 
-func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Space, k.Enter}
-}
-
-func (k keyMap) FullHelp() []key.Binding {
-	return []key.Binding{k.Space, k.Enter}
-}
-
 var keys = keyMap{
 	Space: key.NewBinding(
 		key.WithKeys("space"),
-		key.WithHelp("␣", "toggle alt screen"),
+		key.WithHelp("␣", "alt screen"),
 	),
 	Enter: key.NewBinding(
 		key.WithKeys("enter"),
@@ -45,7 +37,6 @@ func (i item) FilterValue() string { return "" }
 type model struct {
 	category  string
 	altScreen bool
-	keys      keyMap
 	list      list.Model
 	items     []item
 }
@@ -98,7 +89,6 @@ func (m model) View() string {
 func newModel(category string) model {
 	m := model{
 		category: category,
-		keys:     keys,
 	}
 
 	return m
@@ -126,8 +116,13 @@ func (m model) withList(stories stories) model {
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
 
-	l.AdditionalShortHelpKeys = m.keys.ShortHelp
-	l.AdditionalFullHelpKeys = m.keys.FullHelp
+	l.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{keys.Space, keys.Enter}
+	}
+
+	l.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{keys.Space, keys.Enter}
+	}
 
 	m.list = l
 
