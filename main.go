@@ -27,20 +27,20 @@ func main() {
 
 	app := &cli.App{
 		Name:                 "stic",
-		Usage:                "navigate HN in the terminal",
+		Usage:                "hn in the terminal",
 		EnableBashCompletion: true,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "category",
 				Aliases:     []string{"c"},
 				Value:       "top",
-				Usage:       "HN category",
+				Usage:       "hn category. Available categories are: \"top\", \"news\", \"best\", \"ask\", \"show\" and \"job\"",
 				Destination: &category,
 			},
 			&cli.IntFlag{
 				Name:        "max",
 				Aliases:     []string{"m"},
-				Value:       0,
+				Value:       20,
 				Usage:       "max number of items",
 				Destination: &maxItems,
 			},
@@ -62,8 +62,13 @@ func main() {
 				f, err := tea.LogToFile("stic.log", "debug")
 				if err != nil {
 					log.Fatalln(err)
+				} else {
+					defer func() {
+						if err := f.Close(); err != nil {
+							log.Fatalln(err)
+						}
+					}()
 				}
-				defer f.Close()
 			}
 
 			c := &http.Client{}
@@ -71,6 +76,12 @@ func main() {
 			ids, err := fetchItemsIds(c, hnUrl+path)
 			if err != nil {
 				log.Fatalln(err)
+			}
+
+			if len(ids) < maxItems {
+				maxItems = len(ids)
+			} else {
+				ids = ids[:maxItems]
 			}
 
 			stories, err := fetchStories(c, ids)
