@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli/v2"
 	"log"
 	"net/http"
@@ -23,6 +23,7 @@ var categories = map[string]string{
 func main() {
 	var category string
 	var maxItems int
+	var debug bool
 
 	app := &cli.App{
 		Name:                 "stic",
@@ -43,13 +44,27 @@ func main() {
 				Usage:       "max number of items",
 				Destination: &maxItems,
 			},
+			&cli.BoolFlag{
+				Name:        "debug",
+				Aliases:     []string{"d"},
+				Value:       false,
+				Usage:       "enables debug mode",
+				Destination: &debug,
+			},
 		},
 		Action: func(ctx *cli.Context) error {
-			if _, ok := categories[category]; !ok {
+			path, ok := categories[category]
+			if !ok {
 				log.Fatalln("the category selected does not exists")
 			}
 
-			path := categories[category]
+			if debug {
+				f, err := tea.LogToFile("stic.log", "debug")
+				if err != nil {
+					log.Fatalln(err)
+				}
+				defer f.Close()
+			}
 
 			c := &http.Client{}
 
@@ -64,8 +79,9 @@ func main() {
 			}
 
 			sort.Sort(stories)
-			for _, s := range stories {
-				fmt.Println(s.ID, s.Title, s.Time)
+			m := newModel(category).withList(stories)
+			if err := tea.NewProgram(m).Start(); err != nil {
+				return err
 			}
 
 			return nil

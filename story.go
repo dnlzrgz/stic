@@ -19,5 +19,5 @@ func (s stories) Len() int { return len(s) }
 func (s stories) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 func (s stories) Less(i, j int) bool {
-	return s[i].Time < s[j].Time
+	return s[i].ID < s[j].ID
 }
