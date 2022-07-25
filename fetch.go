@@ -50,6 +50,10 @@ func fetchStory(c *http.Client, url string) (*story, error) {
 		return nil, err
 	}
 
+	if s.Type == "story" && s.URL == "" {
+		s.URL = fmt.Sprintf("https://news.ycombinator.com/item?id=%v", s.ID)
+	}
+
 	return &s, nil
 }
 
