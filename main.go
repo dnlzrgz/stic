@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -24,6 +26,7 @@ func main() {
 	var category string
 	var maxItems int
 	var debug bool
+	var outputJson bool
 
 	app := &cli.App{
 		Name:                 "stic",
@@ -43,6 +46,12 @@ func main() {
 				Value:       20,
 				Usage:       "max number of items",
 				Destination: &maxItems,
+			},
+			&cli.BoolFlag{
+				Name:        "json",
+				Value:       false,
+				Usage:       "outputs JSON object",
+				Destination: &outputJson,
 			},
 			&cli.BoolFlag{
 				Name:        "debug",
@@ -87,6 +96,16 @@ func main() {
 			stories, err := fetchStories(c, ids)
 			if err != nil {
 				log.Fatalln(err)
+			}
+
+			if outputJson {
+				jsonObj, err := json.Marshal(stories)
+				if err != nil {
+					return err
+				}
+
+				fmt.Fprintf(os.Stdout, "%s", string(jsonObj))
+				return nil
 			}
 
 			sort.Sort(stories)
