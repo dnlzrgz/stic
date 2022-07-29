@@ -23,10 +23,17 @@ var categories = map[string]string{
 }
 
 func main() {
+	if err := start(os.Args); err != nil {
+		log.Fatalf("error while running stic: %v", err)
+	}
+}
+
+func start(args []string) error {
 	var category string
 	var maxItems int
 	var debug bool
 	var outputJson bool
+	var lightMode bool
 
 	app := &cli.App{
 		Name:                 "stic",
@@ -60,6 +67,12 @@ func main() {
 				Usage:       "enables debug mode",
 				Destination: &debug,
 			},
+			&cli.BoolFlag{
+				Name:        "light",
+				Value:       false,
+				Usage:       "enables light color scheme",
+				Destination: &lightMode,
+			},
 		},
 		Action: func(ctx *cli.Context) error {
 			path, ok := categories[category]
@@ -84,7 +97,7 @@ func main() {
 
 			ids, err := fetchItemsIds(c, hnUrl+path)
 			if err != nil {
-				log.Fatalln(err)
+				return err
 			}
 
 			if len(ids) < maxItems {
@@ -95,7 +108,7 @@ func main() {
 
 			stories, err := fetchStories(c, ids)
 			if err != nil {
-				log.Fatalln(err)
+				return err
 			}
 
 			if outputJson {
@@ -110,6 +123,11 @@ func main() {
 
 			sort.Sort(stories)
 			m := newModel(category).withList(stories)
+
+			if lightMode {
+				m = m.withLightColors()
+			}
+
 			if err := tea.NewProgram(m).Start(); err != nil {
 				return err
 			}
@@ -118,7 +136,5 @@ func main() {
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
-		log.Fatalln(err)
-	}
+	return app.Run(args)
 }

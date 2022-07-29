@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/pkg/browser"
 	"io"
 )
@@ -34,7 +35,9 @@ func (i item) Title() string       { return i.title }
 func (i item) Description() string { return i.desc }
 func (i item) FilterValue() string { return "" }
 
-type itemDelegate struct{}
+type itemDelegate struct {
+	itemStyle lipgloss.Style
+}
 
 func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
@@ -46,9 +49,7 @@ func (d itemDelegate) Render(w io.Writer, _ list.Model, _ int, listItem list.Ite
 	}
 
 	str := fmt.Sprintf("%s\n%s↵", i.title, i.desc)
-
-	fn := selectedItemStyle.Render
-	fmt.Fprintf(w, fn(str))
+	fmt.Fprintf(w, d.itemStyle.Render(str))
 }
 
 type model struct {
@@ -71,7 +72,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyCtrlC:
+		case tea.KeyCtrlC, tea.KeyEscape:
 			return m, tea.Quit
 		case tea.KeyEnter:
 			s, ok := m.list.SelectedItem().(item)
@@ -120,7 +121,7 @@ func (m model) withList(stories stories) model {
 		})
 	}
 
-	l := list.New(items, itemDelegate{}, 0, 0)
+	l := list.New(items, itemDelegate{itemStyleDark}, 0, 0)
 	l.Title = fmt.Sprintf("hn - %s stories", m.category)
 
 	l.SetShowStatusBar(false)
@@ -140,5 +141,10 @@ func (m model) withList(stories stories) model {
 
 	m.list = l
 
+	return m
+}
+
+func (m model) withLightColors() model {
+	m.list.SetDelegate(itemDelegate{itemStyleLight})
 	return m
 }
