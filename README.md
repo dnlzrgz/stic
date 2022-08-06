@@ -17,21 +17,24 @@ go install github.com/daniarlert/stic@latest
 
 ## Usage
 To see the list of available options you can run:
-````shell
+```shell
 stic -h
 
 # Or
 
 stic --help
-````
+```
 
 This will prompt you something like this:
-````shell
+```text
 NAME:
    stic - hn in the terminal
 
 USAGE:
    stic [global options] command [command options] [arguments...]
+
+VERSION:
+   v0.0.3
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command
@@ -40,9 +43,12 @@ GLOBAL OPTIONS:
    --category value, -c value  hn category. Available categories are: "top", "news", "best", "ask", "show" and "job" (default: "top")
    --debug, -d                 enables debug mode (default: false)
    --help, -h                  show help (default: false)
+   --json                      outputs JSON object (default: false)
+   --light                     enables light color scheme (default: false)
    --max value, -m value       max number of items (default: 20)
-
-````
+   --no-limit                  fetches as many stories as possible ignoring the `--max` flag
+   --version, -v               print the version (default: false)
+```
 
 The two main flags are `--category` or `-c` and `--max` or `-m`. The `--category` flag selects the HN category from which to download the stories, which number will be specified by the `--max`'s flag value.
 

@@ -23,6 +23,7 @@ func main() {
 func start(args []string) error {
 	var category string
 	var maxItems int
+	var noLimit bool
 	var debug bool
 	var outputJson bool
 	var lightMode bool
@@ -46,6 +47,12 @@ func start(args []string) error {
 				Value:       20,
 				Usage:       "max number of items",
 				Destination: &maxItems,
+			},
+			&cli.BoolFlag{
+				Name:        "no-limit",
+				Value:       false,
+				Usage:       "fetches as many stories as possible ignoring the `--max` flag",
+				Destination: &noLimit,
 			},
 			&cli.BoolFlag{
 				Name:        "json",
@@ -88,10 +95,12 @@ func start(args []string) error {
 				return err
 			}
 
-			if len(ids) < maxItems {
-				maxItems = len(ids)
-			} else {
-				ids = ids[:maxItems]
+			if !noLimit {
+				if len(ids) < maxItems {
+					maxItems = len(ids)
+				} else {
+					ids = ids[:maxItems]
+				}
 			}
 
 			stories, err := hn.FetchStories(c, ids)
