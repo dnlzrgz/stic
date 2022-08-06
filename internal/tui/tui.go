@@ -1,62 +1,22 @@
-package main
+package tui
 
 import (
 	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"github.com/daniarlert/stic/internal/hn"
 	"github.com/pkg/browser"
-	"io"
 )
 
-type keyMap struct {
-	Space key.Binding
-	Enter key.Binding
-}
-
-var keys = keyMap{
-	Space: key.NewBinding(
-		key.WithKeys("space"),
-		key.WithHelp("␣", "alt screen"),
-	),
-	Enter: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("↵", "open url"),
-	),
-}
-
-type item struct {
-	title string
-	desc  string
-}
-
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return i.desc }
-func (i item) FilterValue() string { return "" }
-
-type itemDelegate struct {
-	itemStyle lipgloss.Style
-}
-
-func (d itemDelegate) Height() int                             { return 1 }
-func (d itemDelegate) Spacing() int                            { return 0 }
-func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, _ list.Model, _ int, listItem list.Item) {
-	i, ok := listItem.(item)
-	if !ok {
-		return
-	}
-
-	str := fmt.Sprintf("%s\n%s↵", i.title, i.desc)
-	fmt.Fprintf(w, d.itemStyle.Render(str))
-}
-
 type model struct {
-	category  string
-	altScreen bool
-	list      list.Model
-	items     []item
+	category   string
+	totalItems int
+	altScreen  bool
+	spinner    spinner.Model
+	list       list.Model
 }
 
 func (m model) Init() tea.Cmd {
@@ -104,16 +64,31 @@ func (m model) View() string {
 	return baseStyle.Render(m.list.View() + "\n")
 }
 
-func newModel(category string) model {
+func NewModel(category string, max int) model {
+	if _, ok := hn.Categories[category]; !ok {
+		// TODO: handle error
+		panic("the selected category does not exists")
+	}
+
 	m := model{
-		category: category,
+		category:   category,
+		totalItems: max,
 	}
 
 	return m
 }
 
-func (m model) withList(stories stories) model {
-	items := make([]list.Item, 0, len(stories))
+func (m model) WithSpinner() model {
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = spinnerStyle
+
+	m.spinner = s
+	return m
+}
+
+func (m model) WithList(stories hn.Stories) model {
+	items := make([]list.Item, 0)
 	for _, s := range stories {
 		items = append(items, item{
 			title: fmt.Sprintf("↑%d - %q by %s", s.Score, s.Title, s.By),
@@ -144,7 +119,7 @@ func (m model) withList(stories stories) model {
 	return m
 }
 
-func (m model) withLightColors() model {
+func (m model) WithLightColors() model {
 	m.list.SetDelegate(itemDelegate{itemStyleLight})
 	return m
 }

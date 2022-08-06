@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 	"github.com/charmbracelet/bubbles/list"
@@ -13,6 +13,7 @@ var (
 )
 
 var (
+	spinnerStyle    = lipgloss.NewStyle().Foreground(primary)
 	baseStyle       = lipgloss.NewStyle().Padding(2).Foreground(whiteColor)
 	titleStyle      = lipgloss.NewStyle().PaddingLeft(2).PaddingRight(4).Background(primary).Foreground(whiteColor)
 	itemStyleDark   = lipgloss.NewStyle().PaddingLeft(2).Foreground(whiteColor)

@@ -3,24 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/urfave/cli/v2"
 	"log"
 	"net/http"
 	"os"
 	"sort"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/daniarlert/stic/internal/hn"
+	"github.com/daniarlert/stic/internal/tui"
+	"github.com/urfave/cli/v2"
 )
-
-const hnUrl = "https://hacker-news.firebaseio.com"
-
-var categories = map[string]string{
-	"top":  "/v0/topstories.json",
-	"news": "/v0/newstories.json",
-	"best": "/v0/beststories.json",
-	"ask":  "/v0/askstories.json",
-	"show": "/v0/showstories.json",
-	"job":  "/v0/jobstories.json",
-}
 
 func main() {
 	if err := start(os.Args); err != nil {
@@ -39,6 +31,7 @@ func start(args []string) error {
 		Name:                 "stic",
 		Usage:                "hn in the terminal",
 		EnableBashCompletion: true,
+		Version:              "v0.0.3",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "category",
@@ -75,11 +68,6 @@ func start(args []string) error {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
-			path, ok := categories[category]
-			if !ok {
-				log.Fatalln("the category selected does not exists")
-			}
-
 			if debug {
 				f, err := tea.LogToFile("stic.log", "debug")
 				if err != nil {
@@ -95,7 +83,7 @@ func start(args []string) error {
 
 			c := &http.Client{}
 
-			ids, err := fetchItemsIds(c, hnUrl+path)
+			ids, err := hn.FetchItemsIds(c, category)
 			if err != nil {
 				return err
 			}
@@ -106,7 +94,7 @@ func start(args []string) error {
 				ids = ids[:maxItems]
 			}
 
-			stories, err := fetchStories(c, ids)
+			stories, err := hn.FetchStories(c, ids)
 			if err != nil {
 				return err
 			}
@@ -122,10 +110,10 @@ func start(args []string) error {
 			}
 
 			sort.Sort(stories)
-			m := newModel(category).withList(stories)
+			m := tui.NewModel(category, maxItems).WithSpinner().WithList(stories)
 
 			if lightMode {
-				m = m.withLightColors()
+				m = m.WithLightColors()
 			}
 
 			if err := tea.NewProgram(m).Start(); err != nil {

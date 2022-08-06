@@ -1,15 +1,20 @@
-package main
+package hn
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sync"
 )
 
-func fetchItemsIds(c *http.Client, url string) ([]int, error) {
+func FetchItemsIds(c *http.Client, category string) ([]int, error) {
+	url, err := categoryUrl(category)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := c.Get(url)
 	if err != nil {
 		return nil, err
@@ -17,11 +22,11 @@ func fetchItemsIds(c *http.Client, url string) ([]int, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error request responde with status code %d", resp.StatusCode)
+		return nil, fmt.Errorf("got a %d status code", resp.StatusCode)
 	}
 
 	var ids []int
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -33,15 +38,17 @@ func fetchItemsIds(c *http.Client, url string) ([]int, error) {
 	return ids, nil
 }
 
-func fetchStory(c *http.Client, url string) (*story, error) {
-	resp, err := c.Get(url)
+func FetchStory(c *http.Client, id int) (*Story, error) {
+	jsonUrl, hnUrl := itemUrls(id)
+
+	resp, err := c.Get(jsonUrl)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var s story
-	data, err := ioutil.ReadAll(resp.Body)
+	var s Story
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -51,13 +58,13 @@ func fetchStory(c *http.Client, url string) (*story, error) {
 	}
 
 	if s.Type == "story" && s.URL == "" {
-		s.URL = fmt.Sprintf("https://news.ycombinator.com/item?id=%v", s.ID)
+		s.URL = hnUrl
 	}
 
 	return &s, nil
 }
 
-func fetchStories(c *http.Client, ids []int) (stories, error) {
+func FetchStories(c *http.Client, ids []int) (Stories, error) {
 	if len(ids) <= 0 {
 		return nil, errors.New("number of ids cannot be 0")
 	}
@@ -65,14 +72,13 @@ func fetchStories(c *http.Client, ids []int) (stories, error) {
 	var wg sync.WaitGroup
 	wg.Add(len(ids))
 
-	stories := make(stories, 0, len(ids))
-	storiesCh := make(chan *story, 5)
+	stories := make(Stories, 0, len(ids))
+	storiesCh := make(chan *Story, 5)
 	for _, id := range ids {
 		go func(id int) {
 			defer wg.Done()
 
-			url := fmt.Sprintf("%s/v0/item/%v.json", hnUrl, id)
-			s, _ := fetchStory(c, url) // TODO: handle error
+			s, _ := FetchStory(c, id) // TODO: handle error
 			storiesCh <- s
 		}(id)
 	}
