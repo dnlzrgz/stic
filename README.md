@@ -1,19 +1,22 @@
 # Stic 🍊 - Navigate HN in your terminal
+![GitHub top language](https://img.shields.io/github/languages/top/daniarlert/stic) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/daniarlert/stic) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/daniarlert/stic) ![GitHub](https://img.shields.io/github/license/daniarlert/stic) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/daniarlert/stic)
 
-*Stic* is a *maybe-a-little-over-complicated* CLI to navigate Hacker News from the terminal that uses [bubbletea](https://github.com/charmbracelet/bubbletea) for the TUI.
+*Stic* is a *maybe-a-little-over-complicated* CLI to navigate Hacker News from the terminal that uses [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea).
 
 ## Motivation
-I'm working on some projects that can benefit from an advanced TUI. So this project is something like a "light" contact with [bubbletea](https://github.com/charmbracelet/bubbletea) and its ecosystem.
+I'm working on some projects that can benefit from an advanced TUI. So this project is something like a "first" contact with [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) and its ecosystem. 
 
 I also wanted a very simple and easy way to see from the terminal what's new in the [orange site](https://news.ycombinator.com/).
 
 ## Installation
 
-For the moment you can just clone this repository and build the project manually or just install it using `go install` as follows:
+You can just clone this repository and build the project or install it using `go install` as follows:
 
 ````shell
 go install github.com/daniarlert/stic@latest
 ````
+
+If you want, you can algo get the latest release builds [here](https://github.com/daniarlert/stic/releases).
 
 ## Usage
 To see the list of available options you can run:
@@ -53,9 +56,19 @@ GLOBAL OPTIONS:
 The two main flags are `--category` or `-c` and `--max` or `-m`. The `--category` flag selects the HN category from which to download the stories, which number will be specified by the `--max`'s flag value.
 
 ````shell
+stic
+
+# Or
+
 stic --category news
 
+# Or
+
 stic --category job --max 15
+
+# Or
+
+stic --no-limit --json > stic.json
 ````
 
 ## Navigation
