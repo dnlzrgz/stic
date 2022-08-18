@@ -32,7 +32,7 @@ func start(args []string) error {
 		Name:                 "stic",
 		Usage:                "hn in the terminal",
 		EnableBashCompletion: true,
-		Version:              "v0.0.3",
+		Version:              "v0.0.4",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "category",
