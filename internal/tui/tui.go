@@ -40,7 +40,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 
-			// TODO: handle error
+			// TODO: send tea.Msg with an error
+			if len(s.desc) == 0 {
+				return m, cmd
+			}
+
 			if err := browser.OpenURL(s.desc); err != nil {
 				return m, tea.Quit
 			}
@@ -66,7 +70,7 @@ func (m model) View() string {
 
 func NewModel(category string, max int) model {
 	if _, ok := hn.Categories[category]; !ok {
-		// TODO: handle error
+		// TODO: don't panic
 		panic("the selected category does not exists")
 	}
 
